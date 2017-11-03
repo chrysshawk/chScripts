@@ -1,4 +1,4 @@
-# Gross Domestic Product data script
+# Determining similar countries across files, merging them, and returning defined lowest ranked country
 matchCountry <- function(countryNo = 13){
   
   # Get relevant data
@@ -16,12 +16,25 @@ matchCountry <- function(countryNo = 13){
   
   colnames(dataGDP) <- c("CountryCode", "Ranking", "Long.Name", "GDP")
   
-  # Making a tidyGDP where country ID must be selected
-  tidyGDP <- dataGDP[!(dataGDP$CountryCode == ""),]
+  # Converting factors in ranking to integers
+  dataGDP$Ranking <- as.integer(as.character(dataGDP$Ranking))
   
-  # Creating a subset of only countries with GDP
-  countryGDP <- tidyGDP[1:214,]
-
+  # Making a ranked GDP where only ranked countries are included
+  rankedGDP <- dataGDP[!(dataGDP$Ranking == "" | dataGDP$CountryCode == "" | is.na(dataGDP$Ranking)),]
+  
   dataStats <- read.csv("./data/FStats.csv")
+  
+  # Checking how many country codes are the same in both tables (189):
+  countryMatch <- length(intersect(rankedGDP$CountryCode, dataStats$CountryCode))
+  print(countryMatch)
+  
+  # merging tables by CountryCode
+  mergeGDP <- merge(rankedGDP, dataStats, by.x  ="CountryCode", by.y = "CountryCode", all = TRUE)
+  
+  # sorting table by descending GDP
+  orderedGDP <- mergeGDP[order(-mergeGDP$Ranking),]
+  
+  # returning item as specified in function
+  print(orderedGDP[countryNo, 1:5])
   
 }
