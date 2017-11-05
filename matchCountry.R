@@ -37,4 +37,37 @@ matchCountry <- function(countryNo = 13){
   # returning item as specified in function
   print(orderedGDP[countryNo, 1:5])
   
+  
+  # NEXT PART - GROUPING ON INCOME #
+  #--------------------------------#
+  
+  library(dplyr)
+  
+  orderedGDP %>% 
+       select(Income.Group, Ranking) %>%
+       filter(Income.Group == "High income: OECD" | 
+               Income.Group == "High income: nonOECD") %>%
+       group_by(Income.Group) %>%
+       summarize(meanRank = mean(Ranking, na.rm = TRUE))
+  
+  
+  # NEXT PART - INCOME QUANTILE GROUPS #
+  #====================================#
+  
+  # Cleaning away non-income groups from table
+  incomeGDP <- orderedGDP %>%
+       select(Income.Group, Ranking) %>%
+       filter(!Income.Group == "" & Ranking >= 1)
+  
+  # Dropping unused levels
+  incGDP <- droplevels(incomeGDP)
+
+  # Creating quantiles for 5 categories
+  qGroup <- seq(0,100, length = 6)/100
+  incGDP$GDP.Group = cut(incGDP$Ranking, 
+       breaks = quantile(incGDP$Ranking, probs = qGroup))
+  
+  # listing table
+  table(incGDP$Income.Group, incGDP$GDP.Group)
+  
 }
